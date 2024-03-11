@@ -2,7 +2,7 @@ import cv2
 import matplotlib.pyplot as plt
 
 
-path = 'frystak.jpg'
+path = 'pics/jerem.jpg'
 
 img = cv2.imread(path)
 
