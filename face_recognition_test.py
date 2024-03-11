@@ -3,7 +3,7 @@ import cv2
 import numpy as np
 import glob
 
-video_capture = cv2.VideoCapture(1)
+video_capture = cv2.VideoCapture(0)
 
 known_face_encodings = []
 known_face_names = []
@@ -73,28 +73,61 @@ while True:
 
     process_this_frame = not process_this_frame
 
-        # Display the results
+
+    max_name = ''
+    max_area = 0
+
+    found_face = False
+    max_top, max_right, max_bottom, max_left = 0, 0, 0, 0
+
+    # Display the results
     for (top, right, bottom, left), name in zip(face_locations, face_names):
+        if name == 'Unknown':
+            continue
         # Scale back up face locations since the frame we detected in was scaled to 1/4 size
         top *= 4
         right *= 4
         bottom *= 4
         left *= 4
 
+        height = abs(top - bottom)
+        width = abs(right-left)
+
+        area = height*width
+        # print(area, " ", max_area)
+        if area > max_area:
+            max_area = area
+            max_top, max_right, max_bottom, max_left = top, right, bottom, left
+            max_name = name
+            found_face = True
+    # print (max_area)
+    if found_face:
         # Draw a box around the face
-        cv2.rectangle(frame, (left, top), (right, bottom), (0, 0, 255), 2)
+        cv2.rectangle(frame, (max_left, max_top), (max_right, max_bottom), (0, 0, 255), 2)
 
         # Draw a label with a name below the face
-        cv2.rectangle(frame, (left, bottom - 35), (right, bottom), (0, 0, 255), cv2.FILLED)
+        cv2.rectangle(frame, (max_left, max_bottom - 35), (max_right, max_bottom), (0, 0, 255), cv2.FILLED)
         font = cv2.FONT_HERSHEY_DUPLEX
-        cv2.putText(frame, name, (left + 6, bottom - 6), font, 1.0, (255, 255, 255), 1)
+        cv2.putText(frame, max_name, (max_left + 6, max_bottom - 6), font, 1.0, (255, 255, 255), 1)
 
-        if name != 'Unknown' and name != prev_name:
-            print('order from: ', name)
-            prev_name = name
+        if max_name != 'Unknown' and max_name != prev_name:
+            print('order from: ', max_name)
+            prev_name = max_name   
+    
 
+#  # Draw a box around the face
+#     cv2.rectangle(frame, (left, top), (right, bottom), (0, 0, 255), 2)
 
-        break
+#     # Draw a label with a name below the face
+#     cv2.rectangle(frame, (left, bottom - 35), (right, bottom), (0, 0, 255), cv2.FILLED)
+#     font = cv2.FONT_HERSHEY_DUPLEX
+#     cv2.putText(frame, name, (left + 6, bottom - 6), font, 1.0, (255, 255, 255), 1)
+
+#     if name != 'Unknown' and name != prev_name:
+#         print('order from: ', name)
+#         prev_name = name   
+
+        
 
     
 
