@@ -36,10 +36,12 @@ process_this_frame = True
 
 prev_name = ''
 
+frame_count = 0
+
 while True:
     # Grab a single frame of video
     ret, frame = video_capture.read()
-
+    
     # Only process every other frame of video to save time
     if process_this_frame:
         # Resize frame of video to 1/4 size for faster face recognition processing
@@ -82,8 +84,6 @@ while True:
 
     # Display the results
     for (top, right, bottom, left), name in zip(face_locations, face_names):
-        if name == 'Unknown':
-            continue
         # Scale back up face locations since the frame we detected in was scaled to 1/4 size
         top *= 4
         right *= 4
@@ -102,18 +102,33 @@ while True:
             found_face = True
     # print (max_area)
     if found_face:
+        color = ()
         # Draw a box around the face
-        cv2.rectangle(frame, (max_left, max_top), (max_right, max_bottom), (0, 0, 255), 2)
+        if max_name == 'Unknown':
+            color = (0, 0, 255)
+        else:
+            color = (0, frame_count * 25, 250-frame_count*25)
+        cv2.rectangle(frame, (max_left, max_top), (max_right, max_bottom), color, 2)
 
         # Draw a label with a name below the face
-        cv2.rectangle(frame, (max_left, max_bottom - 35), (max_right, max_bottom), (0, 0, 255), cv2.FILLED)
+        cv2.rectangle(frame, (max_left, max_bottom - 35), (max_right, max_bottom), color, cv2.FILLED)
         font = cv2.FONT_HERSHEY_DUPLEX
         cv2.putText(frame, max_name, (max_left + 6, max_bottom - 6), font, 1.0, (255, 255, 255), 1)
 
-        if max_name != 'Unknown' and max_name != prev_name:
-            print('order from: ', max_name)
-            prev_name = max_name   
-    
+        if max_name != 'Unknown':
+            if max_name == prev_name:
+                cv2.putText(frame, (str(min(frame_count*10, 100)) +'%'), (max_left + 6, max_bottom - 60), font, 1.0, (255, 255, 255), 1)
+                
+                frame_count+=1
+                if frame_count == 10:
+                    print('order from: ', max_name)
+            else:
+                prev_name = max_name   
+                frame_count = 0
+        else:
+            prev_name = 'Unknown'    
+    else:
+        frame_count = 0
 
 #  # Draw a box around the face
 #     cv2.rectangle(frame, (left, top), (right, bottom), (0, 0, 255), 2)
